@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "YIHAO 翻译器 · YouTube 双语字幕",
+  "short_name": "YIHAO 翻译器",
+  "author": "YIHAO",
+  "version": "0.1.4",
+  "description": "让每句话完整呈现。为YouTube提供全文预读、专业术语分析、整句中文与双语字幕、样式调整及SRT下载。",
+  "minimum_chrome_version": "116",
+  "permissions": ["storage", "unlimitedStorage", "scripting", "offscreen", "downloads"],
+  "host_permissions": ["https://www.youtube.com/*", "https://api.deepseek.com/*"],
+  "background": {"service_worker": "service-worker.js", "type": "module"},
+  "action": {"default_title": "YIHAO 翻译器 · 打开翻译面板"},
+  "options_page": "settings.html",
+  "content_scripts": [
+    {"matches": ["https://www.youtube.com/*"], "js": ["capture.js"], "world": "MAIN", "run_at": "document_start"},
+    {"matches": ["https://www.youtube.com/*"], "js": ["content.js"], "run_at": "document_idle"}
+  ]
+}

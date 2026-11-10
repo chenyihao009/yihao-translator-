@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>使用教程 · YIHAO 翻译器</title>
+  <style>
+    :root{color-scheme:light;--ink:#20362a;--muted:#647269;--line:#dce4dd;--green:#285b3e;--paper:#fff;--canvas:#f4f6f2}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--canvas);color:var(--ink);font:16px/1.75 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+    a{color:var(--green);text-underline-offset:3px}a:hover{color:#163c26}button{font:inherit}button,a,summary{outline-offset:4px}button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid #478658}
+    .wrap{width:min(100% - 40px,940px);margin:auto}header{padding:30px 0 18px;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:12px}.mark{display:grid;place-items:center;width:42px;height:42px;background:#e2ecdf;border-radius:10px;color:#285b3e;font-weight:750}.brand strong{font-size:17px}.eyebrow{display:block;color:var(--muted);font-size:12px;letter-spacing:.04em}
+    main{padding:32px 0 56px}h1{font-size:clamp(26px,4vw,36px);line-height:1.3;margin:0 0 12px;letter-spacing:-.02em}h2{font-size:21px;line-height:1.4;margin:0 0 15px}h3{font-size:16px;margin:0 0 8px}p{margin:10px 0}.intro{max-width:720px;color:var(--muted)}.status-note{margin:24px 0 18px;padding:15px 18px;background:#fff9eb;border:1px solid #eadfbc;border-radius:10px;font-size:14px}.status-note strong{color:#705728}
+    nav{display:flex;flex-wrap:wrap;gap:8px 20px;margin:24px 0 30px;font-size:14px}section{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:27px 30px;margin-top:20px}.number{display:inline-grid;place-items:center;border:1px solid #bfd0c0;background:#f0f5ee;width:27px;height:27px;border-radius:50%;margin-right:9px;color:#365f40;font-size:14px;vertical-align:2px}
+    ol,ul{padding-left:24px;margin:12px 0}li+li{margin-top:9px}code{font:14px/1.5 ui-monospace,Consolas,monospace;padding:3px 6px;border:1px solid #e1e7df;border-radius:5px;background:#f5f7f3;overflow-wrap:anywhere}.tip{padding:12px 15px;background:#f0f5ef;border-left:3px solid #82a88a;border-radius:0 8px 8px 0;font-size:14px;margin:16px 0}.quiet{font-size:13px;color:var(--muted)}.actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px 20px;margin-top:18px}.button{display:inline-block;border:0;border-radius:8px;background:var(--green);padding:10px 18px;color:white;font-weight:600;cursor:pointer}.button:hover:not(:disabled){background:#1c462e}.button:disabled{background:#dde5dc;color:#6c7c6e;cursor:default}#settings-status{min-height:24px;font-size:13px;color:var(--muted)}
+    figure{margin:18px 0 0}figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:#f7f9f5}.folder-image{width:min(100%,660px)}.panel-image{width:min(100%,300px)}figcaption{font-size:12px;color:var(--muted);margin-top:7px}.two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:18px}.mini{padding:17px;background:#f5f8f3;border-radius:10px}.mini p{font-size:14px;color:var(--muted)}.mini p:last-child{margin-bottom:0}
+    details{border-top:1px solid var(--line);padding:13px 0}details:last-child{padding-bottom:0}summary{cursor:pointer;font-weight:600;font-size:15px}details p{font-size:14px;color:#526057;padding-right:12px}footer{padding:0 0 35px;color:var(--muted);font-size:13px}.footer-links{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:12px}
+    @media(max-width:620px){.wrap{width:min(100% - 24px,940px)}header{padding-top:20px}main{padding-top:25px}section{padding:22px 19px}.two{grid-template-columns:1fr}nav{gap:9px 16px}h2{font-size:19px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <div class="brand"><span class="mark" aria-hidden="true">Y</span><div><strong>YIHAO 翻译器</strong><span class="eyebrow">让每句话完整呈现 · 离线使用教程 · 0.1.4</span></div></div>
+  </header>
+  <main class="wrap">
+    <h1>从安装到第一条中文字幕</h1>
+    <p class="intro">按下面几步操作即可，不需要编程。安装完成后，日常翻译和字幕调整都在 YouTube 页面内进行。</p>
+    <div class="status-note"><strong>当前是实验版。</strong>自动获取 YouTube 字幕可能失败，登录后也需要实际测试。遇到问题时，可以在设置页的“高级排错”中导入原字幕，再进行翻译。</div>
+    <nav aria-label="教程目录"><a href="#install">1. 安装</a><a href="#connect">2. 连接模型</a><a href="#use">3. 开始翻译</a><a href="#style">4. 字幕样式</a><a href="#faq">常见问题</a></nav>
+
+    <section id="install" aria-labelledby="install-title">
+      <h2 id="install-title"><span class="number">1</span>安装到 Chrome</h2>
+      <ol>
+        <li>把下载的 ZIP <strong>解压</strong>到一个固定文件夹。不要直接在压缩包里操作。</li>
+        <li>打开这个文件夹，确认能直接看到 <code>manifest.json</code>。</li>
+        <li>在 Chrome 地址栏输入 <code>chrome://extensions</code>，按回车，开启右上角的<strong>开发者模式</strong>。</li>
+        <li>点击<strong>加载已解压的扩展程序</strong>，选择第 2 步中直接含有 <code>manifest.json</code> 的文件夹。</li>
+        <li>回到已经打开的 YouTube 视频，刷新页面。右侧会出现<strong>YIHAO 翻译器</strong>按钮。</li>
+      </ol>
+      <div class="tip">选文件夹时，以“里面直接有 <code>manifest.json</code>”为准。不要选择 ZIP 文件，也不要选择更外面的一层文件夹。</div>
+      <figure><img class="folder-image" src="docs/assets/install-folder.svg" alt="选择可直接看到manifest.json的插件文件夹示意图"><figcaption>安装包的插件文件位于根目录，无需寻找 extension 子文件夹。</figcaption></figure>
+    </section>
+
+    <section id="connect" aria-labelledby="connect-title">
+      <h2 id="connect-title"><span class="number">2</span>首次连接翻译模型</h2>
+      <p>翻译使用你自己的 DeepSeek API，按平台用量计费。API Key 是访问密钥，只需在扩展自己的设置页填写一次。</p>
+      <ol>
+        <li>前往 <a href="https://platform.deepseek.com/" target="_blank" rel="noopener noreferrer">DeepSeek 官方开放平台</a>，注册或登录，按平台提示准备 API 余额并创建密钥。</li>
+        <li>在 YouTube 点击<strong>YIHAO 翻译器 → 开始翻译</strong>。首次尚未配置时，会打开扩展设置页。</li>
+        <li>把密钥粘贴到设置页并保存，再回到 YouTube 开始翻译。保存成功只表示配置已保存，接口可用性还需实际调用确认。</li>
+      </ol>
+      <div class="actions"><button class="button" id="open-settings" type="button" disabled>打开扩展设置</button><a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">前往 YouTube</a></div>
+      <p id="settings-status" role="status">正在确认教程打开方式。</p>
+      <p class="quiet">以后修改密钥：打开 <code>chrome://extensions</code>，找到本插件，点击<strong>详细信息 → 扩展程序选项</strong>。</p>
+      <p class="quiet">不要把密钥贴到 GitHub 问题反馈、公开截图或其他公开页面。</p>
+    </section>
+
+    <section id="use" aria-labelledby="use-title">
+      <h2 id="use-title"><span class="number">3</span>在视频上点击“开始翻译”</h2>
+      <ol>
+        <li>打开一个有原语言字幕的普通 YouTube 视频，先确认 YouTube 自己的字幕按钮能显示原文。</li>
+        <li>点击右侧<strong>YIHAO 翻译器</strong>，展开控制面板，确认标题旁的<strong>启用翻译</strong>已开启，再点击<strong>开始翻译</strong>。</li>
+        <li>等待扩展阅读全文并分批翻译。生成的字幕会直接显示在播放器中，已完成的部分会缓存。</li>
+      </ol>
+      <p>默认是双语字幕：<strong>中文在上、原文在下</strong>。可以照常拖动播放进度、倍速播放和进入全屏。</p>
+      <p><strong>暂时不用时，关闭标题旁的“启用翻译”总开关。</strong>它默认开启；关闭会隐藏自定义字幕、恢复 YouTube 原生字幕，并阻止新翻译。已发出的 API 请求会完成并缓存结果，然后暂停后续批次，这部分调用仍可能计费。</p>
+      <p>总开关会同步到已经打开的 YouTube 页面，刷新或重启浏览器后仍记住。再次开启会恢复已生成字幕；未完成翻译需要手动点击<strong>继续翻译</strong>，不会自动恢复付费调用。密钥、样式和字幕缓存均保留。</p>
+      <figure><img class="panel-image" src="docs/assets/main-panel.png" alt="YIHAO翻译器控制面板，主要操作是开始翻译"><figcaption>主面板保持简洁；样式等细节默认折叠。</figcaption></figure>
+      <p class="quiet">下载尚未完成的任务，只会得到当前已生成的部分。若要本次输入的完整字幕，请等待任务完成；只导入某一段时，结果也只覆盖那一段。</p>
+    </section>
+
+    <section id="style" aria-labelledby="style-title">
+      <h2 id="style-title"><span class="number">4</span>把字幕调到看着舒服</h2>
+      <p>展开面板里的<strong>字幕样式</strong>：可以显示或隐藏字幕、切换双语，并开关字幕下方的深色底。这里的<strong>显示字幕</strong>只控制显示，不会停止翻译；需要暂停翻译时，请关闭标题旁的<strong>启用翻译</strong>总开关。</p>
+      <p>点击<strong>调整字幕样式</strong>，可以分别设置中文和原文的颜色、加粗与投影；原文字号以中文字号的百分比设置，默认 60%。</p>
+      <div class="two">
+        <div class="mini"><h3>中文主字幕</h3><p>默认在上方，白字略大，带黑色投影，便于在明亮画面上辨认。</p></div>
+        <div class="mini"><h3>原文副字幕</h3><p>默认在中文下方，字号约为中文的 60%，用较轻的字重和投影作为对照。</p></div>
+      </div>
+      <p class="quiet">建议先使用默认样式，觉得太大、太小或挡住画面时，再作调整。</p>
+    </section>
+
+    <section id="import" aria-labelledby="import-title">
+      <h2 id="import-title">自动取不到字幕时：导入原字幕</h2>
+      <p>模型配置与导入入口在扩展设置页中，日常主面板里不显示这些入口。</p>
+      <ol>
+        <li>保持目标 YouTube 视频打开，确认“启用翻译”总开关已开启。通过上面的<strong>打开扩展设置</strong>按钮，或 Chrome 扩展管理页的<strong>详细信息 → 扩展程序选项</strong>进入设置。</li>
+        <li>展开<strong>高级排错</strong>，点击<strong>刷新视频列表</strong>，核对标题并选择目标 YouTube 视频。</li>
+        <li>点击<strong>导入到所选视频</strong>，从弹出的窗口选择该视频的<strong>原语言字幕</strong>，支持 SRT、VTT、JSON3；选择后回到目标视频查看进度。</li>
+      </ol>
+      <div class="tip">目标标签页与字幕文件要对应同一部视频。缺少逐词时间的 SRT、VTT 文件，句内时间会使用估算。</div>
+    </section>
+
+    <section id="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">常见问题</h2>
+      <details><summary>1. 提示“清单文件缺失或不可读取”怎么办？</summary><p>通常是选错文件夹或还没有解压。返回文件夹，找到 <code>manifest.json</code>，然后在 Chrome 中选择直接包含它的那一层文件夹。</p></details>
+      <details><summary>2. 安装后，YouTube 上没有“YIHAO 翻译器”按钮？</summary><p>确认扩展已启用，再刷新已经打开的视频页面。先用普通点播视频测试；Shorts 等页面尚未完成验证。也可以点击 Chrome 工具栏扩展菜单里的本插件。</p></details>
+      <details><summary>3. 为什么一直显示“正在准备”或“正在翻译”？</summary><p>第一次会先阅读全文，再分批调用模型，需要等待；网络和视频长度都会影响时间。保持 Chrome 打开，查看面板进度。若已经显示错误，按提示处理后重试；停止任务会在当前 API 请求完成后生效。</p></details>
+      <details><summary>4. 登录了 YouTube，为什么仍然取不到字幕？</summary><p>登录不保证每部视频的字幕接口都可读取。先检查原生字幕能否正常显示，再刷新重试。当前实验版不支持无字幕视频；仍失败时，可以用设置页中的“高级排错”导入原字幕。</p></details>
+      <details><summary>5. 密钥保存了，为什么仍然报错？</summary><p>保存成功只说明密钥已存入本浏览器。检查粘贴是否完整、DeepSeek 账户余额和网络是否正常，再根据面板中的错误文字排查。反馈问题时，只提供错误文字，不要提供密钥。</p></details>
+    </section>
+
+    <div class="tip">更新插件：把新版文件覆盖到原来的插件文件夹，在 <code>chrome://extensions</code> 中点击本插件的刷新按钮，再刷新 YouTube。保留原文件夹路径有助于继续使用原有设置和缓存。</div>
+  </main>
+  <footer class="wrap"><p>这是随插件提供的离线教程。阅读本页不需要调用翻译 API；只有你主动点击外部链接时才会前往相应网站。</p><div class="footer-links"><a href="https://platform.deepseek.com/" target="_blank" rel="noopener noreferrer">DeepSeek 官方开放平台</a><a href="https://www.youtube.com/" target="_blank" rel="noopener noreferrer">YouTube</a><a href="NOTICE.md">许可状态</a></div></footer>
+  <script src="help.js"></script>
+</body>
+</html>

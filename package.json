@@ -1,0 +1,11 @@
+{
+  "name": "yihao-translator",
+  "version": "0.1.4",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "test": "node --test"
+  }
+}

@@ -1,0 +1,12 @@
+1
+00:00:01,000 --> 00:00:04,000
+This is a small subtitle example for learning how to import a file.
+
+2
+00:00:04,000 --> 00:00:07,000
+Chinese subtitles appear above the original text.
+
+3
+00:00:07,000 --> 00:00:10,000
+You can change the background and adjust each subtitle style.
+
