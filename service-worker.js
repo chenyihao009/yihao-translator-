@@ -84,7 +84,7 @@ async function handle(message,sender){
   let jobId=await store.get(baseId+':active')||baseId;
   if(message.type==='find'){
     const job=await store.get(jobId);
-    if(job&&['queued','analyzing','translating'].includes(job.status)&&!(await chrome.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT']})).length){
+    if(job&&['queued','analyzing','translating','reviewing'].includes(job.status)&&!(await chrome.runtime.getContexts({contextTypes:['OFFSCREEN_DOCUMENT']})).length){
       job.status='paused';job.message='上次浏览器处理已中断，点击继续可复用缓存。';await store.set(jobId,job);
     }
     return job||null;
@@ -98,19 +98,27 @@ async function handle(message,sender){
     if(message.type==='importText'){
       if(typeof message.text!=='string'||message.text.length>20e6)throw new Error('字幕文件过大或无效。');
       source=parseTimedText(message.text);if(!source.metadata){source.metadata=await tabMetadata(sender.tab.id);delete source.metadata.tracks;}
-    }else source=message.type==='import'?message.source:await acquire(sender.tab.id,language,videoId);
+    }else if(message.type==='import')source=message.source;
+    else{
+      const cachedSource=await store.get(jobId+':sourceData');
+      source=cachedSource?.metadata?.id===videoId&&Array.isArray(cachedSource?.raw?.events)
+        ?cachedSource:await acquire(sender.tab.id,language,videoId);
+    }
     if((message.type==='import'||message.type==='importText')&&(!source?.raw?.events||source?.metadata?.id!==videoId))throw new Error('请在对应视频页面导入原字幕。');
     await assertEnabled(epoch);
-    if(message.type!=='start'){
-      const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(source.raw)));
-      const fingerprint=Array.from(new Uint8Array(bytes)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,16);
-      jobId=baseId+':source:'+fingerprint;
-    }
+    // A webpage track and an imported file can have different word indexes or
+    // clocks for the same video. Resume only the task for this exact source.
+    const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(source.raw)));
+    const fingerprint=Array.from(new Uint8Array(bytes)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,16);
+    const sourceJobId=baseId+':source:'+fingerprint,sourceChanged=Boolean(existing&&jobId!==sourceJobId);
+    jobId=sourceJobId;
     return transition(async()=>{
       await assertEnabled(epoch);
-      if(message.type!=='start')await store.set(baseId+':active',jobId);
+      await store.set(baseId+':active',jobId);
       existing=await store.get(jobId);if(existing?.status==='complete')return existing;
-      const initial=existing||{jobId,videoId,metadata:source.metadata,cues:[],status:'queued',progress:0,message:'正在准备整句翻译。'};
+      const initial=existing||{jobId,videoId,metadata:source.metadata,cues:[],status:'queued',progress:0,
+        message:sourceChanged?'字幕来源已变化，正在准备新的翻译任务。':'正在准备整句翻译。'};
+      await store.set(jobId+':sourceData',{raw:source.raw,metadata:source.metadata});
       await offscreen();
       const response=await chrome.runtime.sendMessage({target:'offscreen',type:'start',jobId,...source,key:config.apiKey,enabledEpoch:epoch});
       if(!response?.ok)throw new Error(response?.error||'未能启动浏览器翻译线程。');return initial;

@@ -9,16 +9,17 @@ import re
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-RUNTIME=['manifest.json','content.js','core.js','store.js','capture.js','source.js','service-worker.js',
-         'worker.js','offscreen.html','offscreen.js','settings.html','settings.js','sentence-prompt.txt','help.html','help.js']
+RUNTIME=['manifest.json','content.js','core.js','caption-source.js','numbers.js','store.js','capture.js','source.js','service-worker.js',
+         'worker.js','review.js','recovery.js','offscreen.html','offscreen.js','settings.html','settings.js','sentence-prompt.txt','subtitle-rules.txt','review-prompt.txt','help.html','help.js']
 DOCS=['docs/INSTALL.md','docs/API_KEY.md','docs/FAQ.md','docs/UPDATE.md','docs/PRIVACY.md',
       'docs/PUBLISH_GITHUB.md','docs/DEVELOPMENT.md','docs/字幕规范.md',
       'docs/assets/main-panel.png','docs/assets/subtitle-style.png','docs/assets/bilingual-preview.png',
       'docs/assets/install-folder.svg','docs/assets/subtitle-details-main.png','docs/assets/subtitle-details-source.png',
-      'docs/assets/bilingual-no-background.png','docs/assets/settings-page.png']
+      'docs/assets/bilingual-no-background.png','docs/assets/settings-page.png','docs/assets/chrome-install.png']
 COMMON=RUNTIME+DOCS+['README.md','NOTICE.md','RELEASE_NOTES.md','samples/demo.en.srt','samples/README.md','开始使用.txt']
 SOURCE=COMMON+['.gitignore','.gitattributes','.github/ISSUE_TEMPLATE/bug_report.yml','package.json',
-               'scripts/check.mjs','scripts/package.py','tests/core.test.mjs','tests/worker-control.test.mjs','tests/background-control.test.mjs']
+               'scripts/check.mjs','scripts/package.py','tests/core.test.mjs','tests/worker-control.test.mjs','tests/background-control.test.mjs',
+               'tests/caption-source.test.mjs','tests/numbers.test.mjs','tests/subtitle-validation.test.mjs','tests/worker-budget.test.mjs','tests/review.test.mjs','tests/worker-review.test.mjs','tests/recovery.test.mjs']
 
 def validate(files):
     patterns=[re.compile(r'sk-[A-Za-z0-9_-]{20,}'),re.compile(r'gh[pousr]_[A-Za-z0-9_]{30,}'),re.compile(r'github_pat_[A-Za-z0-9_]{30,}')]

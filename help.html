@@ -20,7 +20,7 @@
 </head>
 <body>
   <header class="wrap">
-    <div class="brand"><span class="mark" aria-hidden="true">Y</span><div><strong>YIHAO 翻译器</strong><span class="eyebrow">让每句话完整呈现 · 离线使用教程 · 0.1.4</span></div></div>
+    <div class="brand"><span class="mark" aria-hidden="true">Y</span><div><strong>YIHAO 翻译器</strong><span class="eyebrow">让每句话完整呈现 · 离线使用教程 · 0.1.7</span></div></div>
   </header>
   <main class="wrap">
     <h1>从安装到第一条中文字幕</h1>
@@ -60,9 +60,10 @@
       <ol>
         <li>打开一个有原语言字幕的普通 YouTube 视频，先确认 YouTube 自己的字幕按钮能显示原文。</li>
         <li>点击右侧<strong>YIHAO 翻译器</strong>，展开控制面板，确认标题旁的<strong>启用翻译</strong>已开启，再点击<strong>开始翻译</strong>。</li>
-        <li>等待扩展阅读全文并分批翻译。生成的字幕会直接显示在播放器中，已完成的部分会缓存。</li>
+        <li>等待扩展阅读全文、分批翻译并自动审校。生成的字幕会显示在播放器中，已完成的部分会缓存。</li>
       </ol>
       <p>默认是双语字幕：<strong>中文在上、原文在下</strong>。可以照常拖动播放进度、倍速播放和进入全屏。</p>
+      <p class="quiet">每批初译后，AI 会按“忠实原意、句意完整、术语统一、中文自然、便于阅读”再检查一轮。审校也计入 API 用量，需要额外等待；它仍可能漏掉错误，但不会因一般的质量疑点中断翻译。</p>
       <p><strong>暂时不用时，关闭标题旁的“启用翻译”总开关。</strong>它默认开启；关闭会隐藏自定义字幕、恢复 YouTube 原生字幕，并阻止新翻译。已发出的 API 请求会完成并缓存结果，然后暂停后续批次，这部分调用仍可能计费。</p>
       <p>总开关会同步到已经打开的 YouTube 页面，刷新或重启浏览器后仍记住。再次开启会恢复已生成字幕；未完成翻译需要手动点击<strong>继续翻译</strong>，不会自动恢复付费调用。密钥、样式和字幕缓存均保留。</p>
       <figure><img class="panel-image" src="docs/assets/main-panel.png" alt="YIHAO翻译器控制面板，主要操作是开始翻译"><figcaption>主面板保持简洁；样式等细节默认折叠。</figcaption></figure>
@@ -95,7 +96,7 @@
       <h2 id="faq-title">常见问题</h2>
       <details><summary>1. 提示“清单文件缺失或不可读取”怎么办？</summary><p>通常是选错文件夹或还没有解压。返回文件夹，找到 <code>manifest.json</code>，然后在 Chrome 中选择直接包含它的那一层文件夹。</p></details>
       <details><summary>2. 安装后，YouTube 上没有“YIHAO 翻译器”按钮？</summary><p>确认扩展已启用，再刷新已经打开的视频页面。先用普通点播视频测试；Shorts 等页面尚未完成验证。也可以点击 Chrome 工具栏扩展菜单里的本插件。</p></details>
-      <details><summary>3. 为什么一直显示“正在准备”或“正在翻译”？</summary><p>第一次会先阅读全文，再分批调用模型，需要等待；网络和视频长度都会影响时间。保持 Chrome 打开，查看面板进度。若已经显示错误，按提示处理后重试；停止任务会在当前 API 请求完成后生效。</p></details>
+      <details><summary>3. 为什么一直显示“正在翻译”或“正在审校”？</summary><p>第一次会先阅读全文，再分批翻译、审校，需要等待；网络和视频长度都会影响时间。保持 Chrome 打开，查看面板进度。审校暂时不可用时，会保留初译并继续。若网络、密钥或余额有问题，处理后点击“继续翻译”；停止任务会在当前 API 请求完成后生效。</p></details>
       <details><summary>4. 登录了 YouTube，为什么仍然取不到字幕？</summary><p>登录不保证每部视频的字幕接口都可读取。先检查原生字幕能否正常显示，再刷新重试。当前实验版不支持无字幕视频；仍失败时，可以用设置页中的“高级排错”导入原字幕。</p></details>
       <details><summary>5. 密钥保存了，为什么仍然报错？</summary><p>保存成功只说明密钥已存入本浏览器。检查粘贴是否完整、DeepSeek 账户余额和网络是否正常，再根据面板中的错误文字排查。反馈问题时，只提供错误文字，不要提供密钥。</p></details>
     </section>

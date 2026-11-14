@@ -155,18 +155,18 @@
     applySubtitleStyle(root.querySelector('#stylePreview'),true);applySubtitleStyle(root.querySelector('#dialogPreview'),true);
     root.querySelector('#styleHint').textContent=`中文主字幕 · 原文在下，字号 ${Math.round(settings.sourceScale*100)}%。`;
     root.querySelector('#stylePreview .secondary').hidden=!settings.bilingual;
-    const active=['queued','analyzing','translating'].includes(state?.status),complete=state?.status==='complete';
+    const active=['queued','analyzing','translating','reviewing'].includes(state?.status),complete=state?.status==='complete';
     const stopping=active&&state.enabledEpoch!==undefined&&state.enabledEpoch!==settings.enabledEpoch;
     const resumable=state?.cues?.length||state?.plan||['paused','cancelled'].includes(state?.status);
-    root.querySelector('#start').textContent=!settings.enabled?'翻译已关闭':starting?'正在准备…':stopping?'正在停止…':active?'正在翻译…':complete?(settings.visible?'字幕已就绪':'显示字幕'):resumable?'继续翻译':'开始翻译';
+    root.querySelector('#start').textContent=!settings.enabled?'翻译已关闭':starting?'正在准备…':stopping?'正在停止…':active?(state.status==='reviewing'?'正在审校…':'正在翻译…'):complete?(settings.visible?'字幕已就绪':'显示字幕'):resumable?'继续翻译':'开始翻译';
     root.querySelector('#start').disabled=!settings.enabled||starting||active||(complete&&settings.visible);
     let message='';
     if(!settings.enabled)message=active?'已关闭，当前请求完成后停止。':'已关闭，开启后可继续使用。';
     else if(stopping)message='上一请求仍在结束，请稍后点击继续。';
     else if(starting)message='正在获取原字幕。';
-    else if(active)message=state.status==='analyzing'?'正在理解视频内容。':state.status==='queued'?'正在准备字幕。':`已翻译 ${Math.max(0,Math.min(100,state.progress||0))}%`;
+    else if(active)message=state.status==='analyzing'?'正在理解视频内容。':state.status==='queued'?'正在准备字幕。':state.status==='reviewing'?'正在检查句意、术语和表达。':`已翻译 ${Math.max(0,Math.min(100,state.progress||0))}%`;
     else if(complete)message=state.metadata?.sampleOnly?`示例已就绪 · 前 ${state.metadata.duration} 秒`:`已完成 · ${state.cues?.length||0} 条字幕`;
-    else if(state?.status==='failed'||state?.status==='paused'||state?.status==='cancelled')message=state.message;
+    else if(state?.status==='failed'||state?.status==='paused'||state?.status==='cancelled')message=/原文单词|分句编号|句末标点|混入了多个句子|字幕格式|引号或括号|数值|输出上限|完整JSON|有效JSON/.test(state.message||'')?'已保留进度，点击继续翻译。':state.message;
     else if(!settings.keyConfigured)message='首次使用，请先完成一次配置。';
     root.querySelector('#message').textContent=errorMessage||message;
     root.querySelector('#status').hidden=!message&&!errorMessage;
@@ -176,8 +176,7 @@
     root.querySelector('#statusActions').hidden=!settings.enabled||(settings.keyConfigured&&!active);
     root.querySelector('#progress').hidden=!settings.enabled||!active;root.querySelector('#progress').value=state?.progress||0;
     root.querySelectorAll('[data-download]').forEach(button=>button.disabled=!state?.cues?.length);
-    const notes=state?.quality?.notes||[];root.querySelector('#notes').textContent=notes.length?`${notes.length} 处转写或译法待核对。${notes[0].note}`:'';
-    root.querySelector('#notes').hidden=!notes.length;
+    root.querySelector('#notes').textContent='';root.querySelector('#notes').hidden=true;
   }
   function captions(){
     const player=document.querySelector('#movie_player');if(!player)return;

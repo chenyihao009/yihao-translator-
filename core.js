@@ -1,27 +1,8 @@
-export const RULE_VERSION = 'sentence-v2.2';
+import {validateNumbers} from './numbers.js';
+export {wordsFromJson3} from './caption-source.js';
+export const RULE_VERSION = 'sentence-v2.4';
 export const CONFIRMED = {'Keyframe Assistant': '关键帧助手', 'Easy Ease': '缓动', opacity: '不透明度',
   'pre-compose': '预合成', 'Blender Graph Editor': '曲线编辑器', 'AE Graph Editor': '图表编辑器'};
-export function wordsFromJson3(raw, durationMs) {
-  const entries = []; let estimated = false;
-  for (const event of raw.events || []) {
-    const segs = event.segs || [];
-    const text = segs.map(s => s.utf8 || '').join('');
-    if (!text.trim()) continue;
-    if (segs.some(s => 'tOffsetMs' in s)) {
-      for (const seg of segs) (seg.utf8 || '').match(/\S+/g)?.forEach((word, i) =>
-        entries.push({start: (event.tStartMs || 0) + (seg.tOffsetMs || 0) + i, text: word}));
-    } else {
-      const parts = text.match(/\S+/g) || [];
-      if (parts.length > 1) estimated = true;
-      parts.forEach((word, i) => entries.push({start: (event.tStartMs || 0) + Math.round((event.dDurationMs || 1000) * i / parts.length), text: word}));
-    }
-  }
-  const unique = [...new Map(entries.map(e => [`${e.start}:${e.text}`, e])).values()].sort((a,b) => a.start - b.start);
-  const words = unique.filter(w => w.start < durationMs).map((w, i, all) => ({id: i + 1, text: w.text,
-    start_ms: w.start, end_ms: Math.min(durationMs, Math.max(w.start + 1, Math.min(all[i+1]?.start ?? w.start + 500, w.start + 1200)))}));
-  if (!words.length) throw new Error('未取得可用的带时间字幕。');
-  return {words, timing: estimated ? 'estimated' : 'word-starts'};
-}
 export const normalized = text => text.normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
 export function parseTimedText(text){
   const trimmed=text.replace(/^\uFEFF/,'').trim();
@@ -42,26 +23,50 @@ export function parseTimedText(text){
   if(!events.length)throw new Error('没有读到有效的SRT、VTT或JSON3字幕。');
   return {raw:{events}};
 }
+function normalizeSentenceEnd(value){
+  const text=value.trim();
+  if(/\.{2,}[”」』）)\]】"’']*$/.test(text))return text;
+  return text.replace(/([.!?])([”」』）)\]】"’']*)$/,(_,mark,closing)=>({'.':'。','!':'！','?':'？'}[mark])+closing);
+}
+function sentenceCount(text){
+  const pairs={'“':'”','「':'」','『':'』','（':'）','(':')','【':'】','[':']','"':'"'},stack=[];
+  const chars=Array.from(text);let count=0,punctuation=false;
+  for(let i=0;i<chars.length;i++){
+    const char=chars[i];
+    if(stack.length&&char===stack.at(-1)){stack.pop();punctuation=false;continue;}
+    if(pairs[char]){stack.push(pairs[char]);punctuation=false;continue;}
+    if(stack.length)continue;
+    const prefix=chars.slice(Math.max(0,i-30),i+1).join('');
+    const acronym=/(?:[A-Za-z]+\.){2,}$/.test(prefix)||/\b(?:Mr|Mrs|Ms|Dr|Prof|St|vs|etc)\.$/i.test(prefix);
+    const period=char==='.'&&!acronym&&chars[i-1]!=='.'&&chars[i+1]!=='.'&&!(/[A-Za-z0-9]/.test(chars[i-1]||'')&&/[A-Za-z0-9]/.test(chars[i+1]||''));
+    if(/[。？！!?]/.test(char)||period){if(!punctuation)count++;punctuation=true;}
+    else if(char.trim())punctuation=false;
+  }
+  if(stack.length)throw new Error('字幕中的引号或括号未闭合，请按完整句意修复。');
+  return count;
+}
 export function validateSegments(output, words, isFinal) {
-  if (!Array.isArray(output.segments) || !output.segments.length) throw new Error('模型没有返回完整句子。');
+  if (!output||!Array.isArray(output.segments) || !output.segments.length) throw new Error('模型没有返回完整句子。');
   const map = new Map(words.map(w => [w.id, w])); let next = words[0].id;
   const cues = output.segments.map(item => {
+    if(!item||typeof item!=='object')throw new Error('字幕正文缺失。');
     const first = item.first_word_id, last = item.last_word_id;
     if (!Number.isInteger(first) || !Number.isInteger(last) || first !== next || last < first || !map.has(last)) throw new Error('分句编号不连续、重叠或越界。');
-    const zh = item.zh?.trim(), en = item.en?.trim();
-    if (typeof zh !== 'string' || typeof en !== 'string') throw new Error('字幕正文缺失。');
+    if (typeof item.zh !== 'string' || typeof item.en !== 'string') throw new Error('字幕正文缺失。');
+    const zh = normalizeSentenceEnd(item.zh), en = item.en.trim();
+    if(!zh||!en)throw new Error('字幕正文缺失。');
     const original = Array.from({length: last-first+1}, (_,i) => map.get(first+i).text).join(' ');
     if (normalized(original) !== normalized(en)) throw new Error('模型改写了原文单词或数字。');
-    const sourceNumbers=original.match(/\d+(?:[.,]\d+)*/g)||[],targetNumbers=zh.match(/\d+(?:[.,]\d+)*/g)||[];
-    if(sourceNumbers.some(number=>!targetNumbers.includes(number)))throw new Error('中文修改或漏掉了原文数字，必须保留数值，疑点单独记录。');
-    if (!/[。？！][”」』）)]?$/.test(zh)) throw new Error('字幕不是以完整句末标点结束。');
-    if (/[。？！].+[。？！][”」』）)]?$/.test(zh)) throw new Error('一条字幕混入了多个句子。');
+    const numeric=validateNumbers(original,zh);
+    if(!numeric.ok)throw new Error(numeric.errors[0]);
+    if (!/[。？！][”」』）)\]】"’']*$/.test(zh)) throw new Error('字幕不是以完整句末标点结束。');
+    if (sentenceCount(zh)>1) throw new Error('一条字幕混入了多个句子。');
     if (zh.includes('-->') || /\n\s*\n/.test(zh)) throw new Error('字幕格式非法。');
     next = last + 1;
     return {first_word_id: first, last_word_id: last, start_ms: map.get(first).start_ms,
       end_ms: map.get(last).end_ms, source: en,
       zh: /keyframe assistant/i.test(en) ? zh.replaceAll('关键帧辅助', '关键帧助手') : zh,
-      notes: Array.isArray(item.notes) ? item.notes.map(String) : []};
+      notes:[...new Set([...(Array.isArray(item.notes)?item.notes.map(String):[]),...numeric.notes])]};
   });
   if (output.consumed_through !== cues.at(-1).last_word_id || (isFinal && output.consumed_through !== words.at(-1).id)) throw new Error('字幕没有完整覆盖本批原文。');
   return {cues, consumed: output.consumed_through};

@@ -6,8 +6,8 @@
 
 | 文件 | 用来做什么 |
 |---|---|
-| `YIHAO-Translator-GitHub-v0.1.4.zip` | 解压后，把里面的源码和教程上传到GitHub仓库。 |
-| `YIHAO-Translator-v0.1.4.zip` | 原样作为Release附件发布，给用户下载安装。 |
+| `YIHAO-Translator-GitHub-v0.1.5.zip` | 解压后，把里面的源码和教程上传到GitHub仓库。 |
+| `YIHAO-Translator-v0.1.5.zip` | 原样作为Release附件发布，给用户下载安装。 |
 
 两份都不含你的密钥。**不要上传原来的整个工作文件夹**，其中可能有个人配置和实验资料。
 
@@ -25,7 +25,7 @@
 2. 打开解压目录，直到同时能看到 `README.md`、`manifest.json`、`content.js`、`docs` 等文件。
 3. 回到GitHub空仓库，点击 **uploading an existing file**；已有文件的仓库可点 **Add file → Upload files**。
 4. 将这层目录中的**所有文件和子文件夹**拖入网页，包括 `.github`、`.gitignore`、`NOTICE.md`，保留目录结构。不要拖外面那层总文件夹，也不要只上传ZIP。
-5. 等文件列表出现，提交说明填 `上传0.1.4测试版与中文教程`，点击 **Commit changes**。
+5. 等文件列表出现，提交说明填 `上传0.1.5测试版与中文教程`，点击 **Commit changes**。
 6. 提交后，仓库首页应直接显示 `README.md` 和 `manifest.json`，README下面能正常显示图片与教程链接。如果首页只有一个总文件夹，说明多套了一层。
 
 GitHub网页一次最多上传100个文件、单个文件最多25MiB；本项目已按小体积、少文件整理，通常一次即可上传。官方步骤见[上传文件](https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository)。
@@ -33,10 +33,10 @@ GitHub网页一次最多上传100个文件、单个文件最多25MiB；本项目
 ## 第三步：给普通用户发布安装附件
 
 1. 在仓库首页找到 **Releases**，点击 **Draft a new release**。
-2. 新建标签 **v0.1.4**，Target选包含你刚才文件的分支。
-3. 标题填 `v0.1.4 · YIHAO 翻译器测试版`。
+2. 新建标签 **v0.1.5**，Target选包含你刚才文件的分支。
+3. 标题填 `v0.1.5 · YIHAO 翻译器测试版`。
 4. 描述可以使用本项目的 [RELEASE_NOTES.md](../RELEASE_NOTES.md)。
-5. 把**用户安装包** `YIHAO-Translator-v0.1.4.zip` 拖进附件区域。不是GitHub源码包，也不是包含你个人资料的文件夹。
+5. 把**用户安装包** `YIHAO-Translator-v0.1.5.zip` 拖进附件区域。不是GitHub源码包，也不是包含你个人资料的文件夹。
 6. 建议勾选 **This is a pre-release**，因为自动获取字幕仍在验证。检查附件、说明和版本号，再点击 **Publish release**。
 
 发布后，你会看到自己上传的ZIP，以及GitHub自动生成的Source code附件。教程中请引导普通用户优先下载你上传的ZIP。

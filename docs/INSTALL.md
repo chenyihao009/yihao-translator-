@@ -2,13 +2,13 @@
 
 [返回首页](../README.md) · [配置 DeepSeek 密钥](API_KEY.md) · [常见问题](FAQ.md)
 
-本教程适用于 **0.1.4 测试版**。你只需要 Chrome、能正常打开的 YouTube 视频，以及自己的 DeepSeek API 密钥。不需要安装 exe、Python、Node.js，也不需要运行命令。
+本教程适用于 **0.1.5 测试版**。你只需要 Chrome、能正常打开的 YouTube 视频，以及自己的 DeepSeek API 密钥。不需要安装 exe、Python、Node.js，也不需要运行命令。
 
 目前已验证“导入原字幕 → 浏览器内调用 DeepSeek → 显示整句字幕”。自动获取 YouTube 字幕仍需在你的日常浏览器会话中确认；登录后也不能保证每个视频都成功。遇到获取失败，可以使用本文后面的导入步骤。
 
 ## 第一步：下载插件安装包
 
-在本项目的 GitHub **Releases（发布）** 页面，展开对应版本的 **Assets（附件）**，下载作者提供的 `YIHAO-Translator-v0.1.4.zip` 插件安装包。
+在本项目的 GitHub **Releases（发布）** 页面，展开对应版本的 **Assets（附件）**，下载作者提供的 `YIHAO-Translator-v0.1.5.zip` 插件安装包。
 
 GitHub 还会列出 `Source code (zip)`、`Source code (tar.gz)`，那是源码压缩包。普通用户优先下载插件安装包；如果只有源码 ZIP，本项目也无需编译，但解压后仍须找到**直接包含 `manifest.json` 的文件夹**。
 

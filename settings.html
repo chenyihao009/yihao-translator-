@@ -1,8 +1,8 @@
 <!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YIHAO 翻译器 · 首次设置</title>
 <style>body{background:#f4f5f3;color:#18241d;font:16px/1.7 system-ui;max-width:620px;margin:48px auto;padding:20px}main{background:white;padding:32px;border:1px solid #dde3dc;border-radius:18px}small,.hint{color:#67746a;font-size:13px}label{display:block;margin:20px 0 8px}input[type=password],select{box-sizing:border-box;width:100%;font:inherit;padding:11px;border:1px solid #bcc9bf;border-radius:8px;background:#fff}button{background:#235c40;color:white;border:0;border-radius:8px;padding:11px 20px;font:inherit;cursor:pointer}button:disabled{opacity:.5;cursor:default}.actions{display:flex;gap:12px;align-items:center;margin-top:16px}.secondary{background:#edf2ed;color:#294432}h1{font-size:25px;margin:0}h2{font-size:18px}#status,#importStatus{min-height:26px;font-size:14px;color:#345d42}a{color:#235c40}details{border-top:1px solid #dde3dc;margin-top:24px;padding-top:18px}summary{cursor:pointer;font-size:14px;color:#637169}#importFile{display:none}select{font-size:14px}footer{margin-top:24px;font-size:14px}</style>
-<main><small>YIHAO 翻译器 · 0.1.4 测试版</small><h1>首次设置</h1><p>保存你自己的DeepSeek密钥，然后回到YouTube点击“开始翻译”。平时不需要打开这一页。</p>
+<main><small>YIHAO 翻译器 · 0.1.7 测试版</small><h1>首次设置</h1><p>保存你自己的DeepSeek密钥，然后回到YouTube点击“开始翻译”。平时不需要打开这一页。</p>
 <label for="key">DeepSeek API Key</label><input id="key" type="password" placeholder="粘贴密钥以保存或替换" autocomplete="off">
-<p class="hint">密钥仅保存在当前浏览器，发往DeepSeek官方API，不进入YouTube页面。API调用按用量付费。</p>
+<p class="hint">密钥仅保存在当前浏览器，发往DeepSeek官方API，不进入YouTube页面。全文分析、翻译和译后审校均使用API，按用量付费。</p>
 <div class="actions"><button id="save">保存密钥</button><button id="clear" class="secondary">清除本机密钥</button></div><p id="status" role="status"></p>
 <small>“已保存”表示本地保存完成，尚未验证密钥或账户余额。首次翻译时会实际连接API。</small>
 <details id="advanced"><summary>高级排错</summary><p class="hint">只有自动获取字幕失败时，才需要从这里导入原语言字幕。支持SRT、VTT、JSON3。</p>

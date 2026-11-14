@@ -3,13 +3,17 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import * as core from '../core.js';
+import * as review from '../review.js';
+import * as recovery from '../recovery.js';
 
 // Run the real worker with isolated storage and controlled responses. No Chrome,
 // real credentials, network access or IndexedDB are used by the worker.
 const workerUrl = new URL('../worker.js', import.meta.url);
 const workerSource = (await readFile(workerUrl, 'utf8'))
   .replace(/^import\s*\{([^}]+)\}\s*from\s*['"]\.\/core\.js['"];?/m, 'const {$1} = __deps.core;')
+  .replace(/^import\s*\{([^}]+)\}\s*from\s*['\"]\.\/review\.js['\"];?/m, 'const {$1} = __deps.review;')
   .replace(/^import\s*\*\s*as\s+store\s+from\s*['"]\.\/store\.js['"];?/m, 'const store = __deps.store;')
+  .replace(/^import\s*\{([^}]+)\}\s*from\s*['"]\.\/recovery\.js['"];?/m,'const {$1}=__deps.recovery;')
   .replaceAll('import.meta.url', JSON.stringify(workerUrl.href));
 const plan = {topic:'Control test', outline:[], glossary:[], translation_rules:['Keep complete sentences.'], ambiguities:[]};
 const stopped = new Set(['paused', 'cancelled']);
@@ -36,8 +40,9 @@ function harness(wordCount = 2) {
   };
   const self = {postMessage: message => messages.push(copy(message))};
   const fetch = (url, options) => {
-    if (String(url).endsWith('/sentence-prompt.txt')) return Promise.resolve({text:async () => 'Test translation rules.'});
+    if (/\/(?:sentence-prompt|review-prompt|subtitle-rules)\.txt$/.test(String(url))) return Promise.resolve({text:async () => 'Test translation rules.'});
     assert.equal(String(url), 'https://api.deepseek.com/chat/completions', 'Unexpected network target');
+    if(JSON.parse(JSON.parse(options.body).messages[1].content).task==='subtitle_review')return Promise.resolve({ok:true,status:200,json:async()=>({choices:[{finish_reason:'stop',message:{content:JSON.stringify({action:'keep',notes:[]})}}]})});
     let resolve;
     const promise = new Promise(complete => { resolve = complete; });
     const request = {
@@ -51,7 +56,7 @@ function harness(wordCount = 2) {
     requests.push(request);
     return promise;
   };
-  vm.runInNewContext(workerSource, {__deps:{core, store}, self, fetch, URL, AbortSignal, AbortController}, {filename:workerUrl.pathname});
+  vm.runInNewContext(workerSource, {__deps:{core, review, recovery, store}, self, fetch, URL, AbortSignal, AbortController}, {filename:workerUrl.pathname});
   function send(message) {
     try {
       const pending = self.onmessage({data:copy(message)});
@@ -66,7 +71,7 @@ function harness(wordCount = 2) {
   const request = index => until(() => requests[index], `API request ${index + 1}`);
   const terminal = () => until(() => {
     const state = records.get(jobId);
-    return state && !['queued', 'analyzing', 'translating'].includes(state.status) && state;
+    return state && !['queued', 'analyzing', 'translating', 'reviewing'].includes(state.status) && state;
   }, 'terminal job state');
   const cached = output => [...records.values()].some(value => value?.output && JSON.stringify(value.output) === JSON.stringify(output));
   async function disable() {

@@ -75,8 +75,8 @@ function harness({offscreenExists = true} = {}) {
   const source = {
     tabMetadata:async () => ({id:videoId, title:'Synthetic control test', duration:2}),
     acquire:(tabId, language, id) => new Promise(resolve => acquisitions.push({tabId, language, id,
-      finish:() => resolve({metadata:{id, title:'Synthetic control test', duration:2},
-        raw:{events:[{tStartMs:0, dDurationMs:1000, segs:[{utf8:'A complete sentence.'}]}]}})}))
+      finish:(raw = {events:[{tStartMs:0, dDurationMs:1000, segs:[{utf8:'A complete sentence.'}]}]}) =>
+        resolve({metadata:{id, title:'Synthetic control test', duration:2}, raw:copy(raw)})}))
   };
   vm.runInNewContext(backgroundSource, {__deps:{source, core, store}, chrome, URL, TextEncoder, crypto:webcrypto}, {filename:backgroundUrl.pathname});
   assert.equal(typeof listener, 'function');
@@ -164,4 +164,108 @@ test('concurrent and duplicate switches serialize persisted epochs without losin
   assert.equal(h.tabMessages.length, 9, 'Only the three actual transitions are broadcast');
   assert.equal(h.runtimeMessages.filter(message => message.type === 'cancelAll').length, 2);
   assert.equal(h.starts().length, 0);
+});
+
+test('changed webpage captions do not resume an imported partial task from the same rule version', {timeout:2000}, async () => {
+  const h = harness();
+  const imported = await h.request({type:'importText', videoId,
+    text:'1\n00:00:00,000 --> 00:00:01,000\nbeta beta.\n\n'});
+  assert.equal(imported.ok, true);
+  const oldJob = {...imported.data, ruleVersion:core.RULE_VERSION, status:'cancelled', consumed:2,
+    plan:{topic:'Old imported source', glossary:[], translation_rules:[]},
+    cues:[{id:1, first_word_id:1, last_word_id:2, start_ms:0, end_ms:1000, source:'beta beta.', zh:'旧来源译文。', notes:[]}]};
+  h.records.set(oldJob.jobId, structuredClone(oldJob));
+  // Older releases did not persist the source, so the compatibility fallback
+  // may acquire a different webpage track. It must still get a fresh task.
+  h.records.delete(oldJob.jobId + ':sourceData');
+  const restarting = h.request({type:'start', videoId});
+  (await h.acquisition()).finish();
+  const result = await restarting;
+  assert.equal(result.ok, true);
+  assert.notEqual(result.data.jobId, oldJob.jobId, 'A different raw caption source must use a separate job/cache namespace');
+  assert.deepEqual(result.data.cues, [], 'Do not attach old translated words to the new source');
+  assert.equal(result.data.consumed, undefined, 'A new source must start from its first word');
+  assert.equal(result.data.plan, undefined, 'A plan made from the old transcript must not be reused');
+  assert.deepEqual(h.records.get(oldJob.jobId), oldJob, 'Keep the old source available for an explicit same-file resume');
+  assert.equal(h.records.get(`job:${core.RULE_VERSION}:${videoId}:auto:active`), result.data.jobId);
+  assert.equal(h.starts().at(-1).jobId, result.data.jobId);
+});
+
+test('an unchanged uncached webpage caption source still resumes its existing partial task', {timeout:2000}, async () => {
+  const h = harness();
+  const raw = {events:[{tStartMs:0, dDurationMs:1000, segs:[{utf8:'Read this. Continue here.'}]}]};
+  const first = h.request({type:'start', videoId});
+  (await h.acquisition()).finish(raw);
+  const initial = await first;
+  assert.equal(initial.ok, true);
+  const partial = {...initial.data, ruleVersion:core.RULE_VERSION, status:'cancelled', consumed:2,
+    plan:{topic:'Same source plan', glossary:[], translation_rules:[]},
+    cues:[{id:1, first_word_id:1, last_word_id:2, start_ms:0, end_ms:500, source:'Read this.', zh:'请阅读。', notes:[]}]};
+  h.records.set(partial.jobId, structuredClone(partial));
+  h.records.delete(partial.jobId + ':sourceData');
+  const restarting = h.request({type:'start', videoId});
+  (await h.acquisition(1)).finish(structuredClone(raw));
+  const result = await restarting;
+  assert.equal(result.ok, true);
+  assert.equal(result.data.jobId, partial.jobId);
+  assert.deepEqual(result.data.cues, partial.cues);
+  assert.equal(result.data.consumed, 2);
+  assert.deepEqual(result.data.plan, partial.plan);
+  assert.equal(h.acquisitions.length, 2, 'An older task without sourceData may reacquire the identical source');
+  assert.equal(h.records.get(`job:${core.RULE_VERSION}:${videoId}:auto:active`), partial.jobId);
+  assert.deepEqual(h.starts().map(message => message.jobId), [partial.jobId, partial.jobId]);
+});
+
+test('continue reuses an imported partial source without acquiring webpage captions and explicit import can replace it', {timeout:2000}, async () => {
+  const h = harness();
+  const imported = await h.request({type:'importText', videoId,
+    text:'1\n00:00:00,000 --> 00:00:01,000\nRead this.\n\n2\n00:00:01,000 --> 00:00:02,000\nContinue here.\n\n'});
+  assert.equal(imported.ok, true);
+  const partial = {...imported.data, ruleVersion:core.RULE_VERSION, status:'cancelled', consumed:2,
+    plan:{topic:'Imported source', glossary:[], translation_rules:[]},
+    cues:[{id:1, first_word_id:1, last_word_id:2, start_ms:0, end_ms:1000, source:'Read this.', zh:'请阅读。', notes:[]}]};
+  h.records.set(partial.jobId, structuredClone(partial));
+  const sourceData = h.records.get(partial.jobId + ':sourceData');
+  assert.deepEqual(Object.keys(sourceData).sort(), ['metadata', 'raw']);
+  assert.equal(sourceData.metadata.id, videoId);
+  assert.equal(sourceData.raw.events.length, 2);
+  assert(!JSON.stringify(sourceData).includes(placeholderKey), 'Never persist API credentials with subtitle sources');
+  const resumed = await h.request({type:'start', videoId});
+  assert.equal(resumed.ok, true);
+  assert.equal(h.acquisitions.length, 0, 'Continuing an imported task must not silently switch to webpage JSON3');
+  assert.equal(resumed.data.jobId, partial.jobId);
+  assert.equal(resumed.data.consumed, 2);
+  assert.deepEqual(resumed.data.cues, partial.cues);
+  assert.deepEqual(resumed.data.plan, partial.plan);
+  assert.deepEqual(h.starts().at(-1).raw, sourceData.raw);
+  const replaced = await h.request({type:'importText', videoId,
+    text:'1\n00:00:00,000 --> 00:00:01,000\nA different source.\n\n'});
+  assert.equal(replaced.ok, true);
+  assert.notEqual(replaced.data.jobId, partial.jobId, 'Explicitly changing the source must create a separate task');
+  assert.deepEqual(replaced.data.cues, []);
+  assert.equal(replaced.data.consumed, undefined);
+  assert.deepEqual(h.records.get(partial.jobId), partial);
+  assert.deepEqual(h.records.get(partial.jobId + ':sourceData'), sourceData);
+  assert.equal(h.records.get(`job:${core.RULE_VERSION}:${videoId}:auto:active`), replaced.data.jobId);
+});
+
+test('a mismatched or malformed persisted source falls back to webpage acquisition', {timeout:2000}, async () => {
+  for (const corrupted of [
+    {metadata:{id:'otherVideo2'}, raw:{events:[]}},
+    {metadata:{id:videoId}, raw:{events:{unexpected:true}}}
+  ]) {
+    const h = harness();
+    const imported = await h.request({type:'importText', videoId,
+      text:'1\n00:00:00,000 --> 00:00:01,000\nOld source.\n\n'});
+    assert.equal(imported.ok, true);
+    h.records.set(imported.data.jobId + ':sourceData', structuredClone(corrupted));
+    const restarting = h.request({type:'start', videoId});
+    (await h.acquisition()).finish();
+    const result = await restarting;
+    assert.equal(result.ok, true);
+    assert.equal(h.acquisitions.length, 1);
+    assert.notEqual(result.data.jobId, imported.data.jobId);
+    assert.equal(h.starts().at(-1).metadata.id, videoId);
+    assert(Array.isArray(h.starts().at(-1).raw.events));
+  }
 });
